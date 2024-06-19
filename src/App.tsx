@@ -1,3 +1,4 @@
+// src/App.js
 import {
     ChakraProvider,
     Box,
@@ -7,13 +8,16 @@ import {
     Text,
     Flex,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Footer from "./components/Footer";
+import SpotifyPage from "./pages/Spotify";
 
 function App() {
     const handleSpotifyLogin = () => {
         const clientId = "4e30948e5e474f8d8f70601f71cdb64f";
-        const redirectUri = "http://localhost:5173";
-        const scope = "user-read-private user-read-email";
+        const redirectUri = "http://localhost:5173/spotify";
+        const scope = "user-read-private user-read-email user-top-read";
         const authEndpoint = "https://accounts.spotify.com/authorize";
 
         const loginUrl = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=token&show_dialog=true`;
@@ -49,38 +53,60 @@ function App() {
 
     return (
         <ChakraProvider>
-            <Flex justifyContent="center" alignItems="center" minHeight="100vh">
-                <Box textAlign="center" fontSize="xl">
-                    <VStack spacing={8}>
-                        <Heading as="h1" size="2xl" mt={10}>
-                            My Music Festival Poster Generator
-                        </Heading>
-                        <Text fontSize="lg" color="gray.600">
-                            Discover and create posters based on your top
-                            Spotify artists.
-                        </Text>
-                        {!token ? (
-                            <Button
-                                colorScheme="green"
-                                size="lg"
-                                onClick={handleSpotifyLogin}
-                            >
-                                Login with Spotify
-                            </Button>
-                        ) : (
-                            <Button
-                                colorScheme="red"
-                                size="lg"
-                                onClick={logout}
-                            >
-                                Logout
-                            </Button>
-                        )}
-                    </VStack>
-                </Box>
-            </Flex>
+            <Router>
+                <Flex
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="100vh"
+                    flexDirection="column"
+                >
+                    <Box textAlign="center" fontSize="xl" flex="1">
+                        <Routes>
+                            <Route
+                                path="/spotify"
+                                element={<SpotifyPage token={token} />}
+                            />
+                            <Route
+                                path="/"
+                                element={
+                                    <VStack spacing={8}>
+                                        <Heading as="h1" size="2xl" mt={10}>
+                                            My Music Festival Poster Generator
+                                        </Heading>
+                                        <Text fontSize="lg" color="gray.600">
+                                            Discover and create posters based on
+                                            your top Spotify artists.
+                                        </Text>
+                                        {!token ? (
+                                            <Button
+                                                colorScheme="green"
+                                                size="lg"
+                                                onClick={handleSpotifyLogin}
+                                            >
+                                                Login with Spotify
+                                            </Button>
+                                        ) : (
+                                            <Box>
+                                                <Button
+                                                    colorScheme="red"
+                                                    size="lg"
+                                                    onClick={logout}
+                                                >
+                                                    Logout
+                                                </Button>
+                                            </Box>
+                                        )}
+                                    </VStack>
+                                }
+                            />
+                        </Routes>
+                    </Box>
+                    <Footer />
+                </Flex>
+            </Router>
         </ChakraProvider>
     );
 }
 
 export default App;
+``;
