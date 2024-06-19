@@ -1,26 +1,18 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { toPng } from "html-to-image";
 
 const useGenerateImage = () => {
-    const ref = useRef<HTMLDivElement>(null);
+    const [imageUrl, setImageUrl] = useState("");
+    const ref = useRef(null);
 
     const generateImage = async () => {
-        if (ref.current === null) {
-            return;
-        }
-
-        try {
-            const dataUrl = await toPng(ref.current, { cacheBust: true });
-            const link = document.createElement("a");
-            link.download = "top-artists.png";
-            link.href = dataUrl;
-            link.click();
-        } catch (error) {
-            console.error("Error generating image:", error);
+        if (ref.current) {
+            const dataUrl = await toPng(ref.current);
+            setImageUrl(dataUrl);
         }
     };
 
-    return { ref, generateImage };
+    return { ref, generateImage, imageUrl };
 };
 
 export default useGenerateImage;
