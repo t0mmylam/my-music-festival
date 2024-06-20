@@ -34,8 +34,22 @@ const formatDate = (offset: number) => {
   return today.toLocaleDateString(undefined, options);
 };
 
+const splitIntoRows = (artists: Artist[], numRows: number) => {
+  const rows = [];
+  const artistsPerRow = Math.ceil(artists.length / numRows);
+
+  for (let i = 0; i < numRows; i++) {
+    rows.push(artists.slice(i * artistsPerRow, (i + 1) * artistsPerRow));
+  }
+
+  return rows;
+};
+
 export const Coachella: React.FC<ArtistListProps> = ({ group, index }) => {
   const offsetToFriday = getOffsetToFriday();
+  const minorArtists = group.slice(1); // Exclude the headliner
+  const rows = splitIntoRows(minorArtists, 3); // Split minor artists into 3 rows
+
   return (
     <VStack
       pt={5}
@@ -60,7 +74,9 @@ export const Coachella: React.FC<ArtistListProps> = ({ group, index }) => {
               borderRadius="md"
               color="white"
             >
-              <Text fontSize="md" textTransform="uppercase">{formatDate(offsetToFriday + index)}</Text>
+              <Text fontSize="md" textTransform="uppercase">
+                {formatDate(offsetToFriday + index)}
+              </Text>
             </Box>
             <Text fontSize="4xl" fontWeight="bold">
               {group[0].name}
@@ -79,23 +95,35 @@ export const Coachella: React.FC<ArtistListProps> = ({ group, index }) => {
               borderRadius="md"
               color="white"
             >
-              <Text fontSize="md" textTransform="uppercase">{formatDate(offsetToFriday + index)}</Text>
+              <Text fontSize="md" textTransform="uppercase">
+                {formatDate(offsetToFriday + index)}
+              </Text>
             </Box>
           </>
         )}
       </Box>
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        columnGap={4}
-        justifyContent={index === 1 ? "flex-end" : "flex-start"}
-      >
-        {group.slice(1).map((artist) => (
-          <Text fontSize="1xl" key={artist.id} textAlign={textAlignment[index]}>
-            {artist.name}
-          </Text>
-        ))}
-      </Box>
+      {rows.map((row, rowIndex) => (
+        <Box
+          key={rowIndex}
+          display="flex"
+          flexWrap="wrap"
+          columnGap={1.5}
+          justifyContent={index === 1 ? "flex-end" : "flex-start"}
+        >
+          {row.map((artist, artistIndex) => (
+            <React.Fragment key={artist.id}>
+              <Text fontSize="1xl" textAlign={textAlignment[index]}>
+                {artist.name}
+              </Text>
+              {artistIndex < row.length - 1 && (
+                <Text as="span" fontSize="1xl" color="purple.400" px={0}>
+                  •
+                </Text>
+              )}
+            </React.Fragment>
+          ))}
+        </Box>
+      ))}
     </VStack>
   );
 };

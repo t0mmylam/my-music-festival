@@ -1,4 +1,3 @@
-// src/App.js
 import {
   ChakraProvider,
   Box,
@@ -12,9 +11,19 @@ import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import SpotifyPage from "./pages/Spotify";
+import Counter from "./components/Counter"; // Import the Counter component
 
 function App() {
-  const handleSpotifyLogin = () => {
+  const handleSpotifyLogin = async () => {
+    // Increment the count on the server
+    try {
+      await fetch("http://localhost:5000/increment", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Error incrementing count:", error);
+    }
+
     const clientId = "4e30948e5e474f8d8f70601f71cdb64f";
     const redirectUri = "http://localhost:5173/spotify";
     const scope = "user-read-private user-read-email user-top-read";
@@ -74,6 +83,7 @@ function App() {
                       Discover and create posters based on your top Spotify
                       artists.
                     </Text>
+                    <Counter /> {/* Include the Counter component */}
                     {!token ? (
                       <Button
                         colorScheme="green"
@@ -102,4 +112,3 @@ function App() {
 }
 
 export default App;
-``;

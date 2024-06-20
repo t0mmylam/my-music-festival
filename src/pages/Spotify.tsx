@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, VStack, Heading, Text } from "@chakra-ui/react";
 import { Coachella } from "../components/Formats";
 import { fetchTopArtists } from "../utils/spotifyUtils";
+import mountain from "../assets/mountain.jpg";
+import skyline from "../assets/skyline.jpg"
 
 interface Artist {
   id: string;
@@ -13,7 +15,11 @@ interface SpotifyPageProps {
 }
 
 const SpotifyPage: React.FC<SpotifyPageProps> = ({ token }) => {
-  const [groupedArtists, setGroupedArtists] = useState<Artist[][]>([[], [], []]);
+  const [groupedArtists, setGroupedArtists] = useState<Artist[][]>([
+    [],
+    [],
+    [],
+  ]);
 
   useEffect(() => {
     if (token) {
@@ -25,14 +31,17 @@ const SpotifyPage: React.FC<SpotifyPageProps> = ({ token }) => {
     <Box
       textAlign="center"
       fontSize="xl"
-      bgGradient="linear(to-b, purple.300, purple.300, pink.300, pink.300, orange.200, yellow.100)"
+      backgroundImage={`linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${mountain})`} // Use the imported image with a darker overlay
+      backgroundSize="contain"
+      backgroundPosition="center"
       maxHeight="800"
       minHeight="800"
       display="flex"
-      color="black"
+      color="white"
       maxWidth="648"
       minWidth="648"
-      p={10}
+      px={10}
+      py={5}
       m={10}
       justifyContent="center"
     >
@@ -45,9 +54,15 @@ const SpotifyPage: React.FC<SpotifyPageProps> = ({ token }) => {
         </Heading>
         {groupedArtists.flat().length > 0 ? (
           <Box width={648}>
-            {groupedArtists.map((group, index) => (
+            {groupedArtists.slice(1).map((group, index) => (
               <Coachella key={index} group={group} index={index} />
             ))}
+            <VStack style={{ fontFamily: "'Antonio', sans-serif" }} spacing={0}>
+              <Text pt={5}>AND...</Text>
+              <Text fontSize="4xl" fontWeight="bold" pt={0}>
+                {groupedArtists[0][0].name}
+              </Text>
+            </VStack>
           </Box>
         ) : (
           <Text>No artists found.</Text>
