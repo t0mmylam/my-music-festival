@@ -1,16 +1,15 @@
-// src/firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDyjL0uxs_02kZqWMIgLC7xhZ6CNrAEHEI",
-  authDomain: "my-music-festival-52542.firebaseapp.com",
-  projectId: "my-music-festival-52542",
-  storageBucket: "my-music-festival-52542.appspot.com",
-  messagingSenderId: "320645031563",
-  appId: "1:320645031563:web:55f77a6005047025ae568e",
-  measurementId: "G-874V9J31EM"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
