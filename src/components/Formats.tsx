@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, VStack, Text } from "@chakra-ui/react";
 import { ResponsiveValue } from "@chakra-ui/react";
 import { TextAlign } from "@chakra-ui/styled-system";
@@ -34,21 +34,38 @@ const formatDate = (offset: number) => {
   return today.toLocaleDateString(undefined, options);
 };
 
-const splitIntoRows = (artists: Artist[], numRows: number) => {
-  const rows = [];
-  const artistsPerRow = Math.ceil(artists.length / numRows);
-
-  for (let i = 0; i < numRows; i++) {
-    rows.push(artists.slice(i * artistsPerRow, (i + 1) * artistsPerRow));
-  }
-
-  return rows;
-};
-
 export const Coachella: React.FC<ArtistListProps> = ({ group, index }) => {
   const offsetToFriday = getOffsetToFriday();
   const minorArtists = group.slice(1); // Exclude the headliner
-  const rows = splitIntoRows(minorArtists, 3); // Split minor artists into 3 rows
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState<number>(20); // Initial font size
+
+  useEffect(() => {
+    const adjustFontSize = () => {
+      if (containerRef.current) {
+        const containerHeight = containerRef.current.clientHeight;
+        const maxContainerHeight = 3 * 20 * 1.75; // 3 rows, 20px per row, 1.75 line height
+        if (containerHeight > maxContainerHeight && fontSize > 10) {
+          setFontSize((prevSize) => prevSize - 1);
+        } else if (containerHeight < maxContainerHeight && fontSize < 20) {
+          setFontSize((prevSize) => prevSize + 1);
+        }
+      }
+    };
+
+    adjustFontSize();
+    const resizeObserver = new ResizeObserver(adjustFontSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+    };
+  }, [minorArtists, fontSize]);
 
   return (
     <VStack
@@ -102,28 +119,23 @@ export const Coachella: React.FC<ArtistListProps> = ({ group, index }) => {
           </>
         )}
       </Box>
-      {rows.map((row, rowIndex) => (
-        <Box
-          key={rowIndex}
-          display="flex"
-          flexWrap="wrap"
-          columnGap={1.5}
-          justifyContent={index === 1 ? "flex-end" : "flex-start"}
-        >
-          {row.map((artist, artistIndex) => (
-            <React.Fragment key={artist.id}>
-              <Text fontSize="1xl" textAlign={textAlignment[index]}>
-                {artist.name}
-              </Text>
-              {artistIndex < row.length - 1 && (
-                <Text as="span" fontSize="1xl" color="purple.400" px={0}>
-                  •
-                </Text>
-              )}
-            </React.Fragment>
-          ))}
-        </Box>
-      ))}
+      <Box
+        ref={containerRef}
+        display="flex"
+        flexWrap="wrap"
+        gap={3}
+        width="100%"
+        justifyContent={index === 1 ? "flex-end" : "flex-start"}
+        fontSize={`${fontSize}px`}
+      >
+        {minorArtists.map((artist) => (
+          <Box key={artist.id}>
+            <Text fontSize="inherit" textAlign={textAlignment[index]}>
+              {artist.name}
+            </Text>
+          </Box>
+        ))}
+      </Box>
     </VStack>
   );
 };

@@ -7,23 +7,20 @@ import {
   Text,
   Flex,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import SpotifyPage from "./pages/Spotify";
-import Counter from "./components/Counter"; // Import the Counter component
+import Header from "./components/Header";
+import { db, doc, getDoc, setDoc, auth } from "./firebaseConfig";
+import { signInAnonymously } from "firebase/auth";
+import CountUp from "react-countup";
 
 function App() {
-  const handleSpotifyLogin = async () => {
-    // Increment the count on the server
-    try {
-      await fetch("http://localhost:5000/increment", {
-        method: "POST",
-      });
-    } catch (error) {
-      console.error("Error incrementing count:", error);
-    }
+  const [token, setToken] = useState("");
+  const [loginCount, setLoginCount] = useState(0);
 
+  const handleSpotifyLogin = async () => {
     const clientId = "4e30948e5e474f8d8f70601f71cdb64f";
     const redirectUri = "http://localhost:5173/spotify";
     const scope = "user-read-private user-read-email user-top-read";
@@ -34,25 +31,72 @@ function App() {
     window.location.href = loginUrl;
   };
 
-  const [token, setToken] = useState("");
+  const incrementLoginCount = async () => {
+    try {
+      const docRef = doc(db, "counters", "spotifyLogin");
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const newCount = docSnap.data().count + 1;
+        await setDoc(docRef, { count: newCount });
+        setLoginCount(newCount);
+      } else {
+        await setDoc(docRef, { count: 1 });
+        setLoginCount(1);
+      }
+    } catch (error) {
+      console.error("Error incrementing login count:", error);
+    }
+  };
 
   useEffect(() => {
-    const hash = window.location.hash;
-    let token = window.localStorage.getItem("token");
+    const authenticateAndFetchData = async () => {
+      try {
+        await signInAnonymously(auth);
+        console.log("Signed in anonymously");
 
-    if (!token && hash) {
-      token = (
-        hash
-          .substring(1)
-          .split("&")
-          .find((elem) => elem.startsWith("access_token")) as string
-      )?.split("=")[1];
+        const hash = window.location.hash;
+        let token = window.localStorage.getItem("token");
 
-      window.location.hash = "";
-      window.localStorage.setItem("token", token);
-    }
+        if (!token && hash) {
+          token = (
+            hash
+              .substring(1)
+              .split("&")
+              .find((elem) => elem.startsWith("access_token")) as string
+          )?.split("=")[1];
 
-    setToken(token ?? "");
+          window.location.hash = "";
+          window.localStorage.setItem("token", token);
+          incrementLoginCount();
+        }
+
+        setToken(token ?? "");
+      } catch (error) {
+        console.error("Firebase authentication error:", error);
+      }
+    };
+
+    authenticateAndFetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchLoginCount = async () => {
+      try {
+        const docRef = doc(db, "counters", "spotifyLogin");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setLoginCount(docSnap.data().count);
+        } else {
+          setLoginCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching login count:", error);
+      }
+    };
+
+    fetchLoginCount();
   }, []);
 
   const logout = () => {
@@ -63,13 +107,14 @@ function App() {
   return (
     <ChakraProvider>
       <Router>
+        <Header token={token} onLogout={logout} />
         <Flex
-          justifyContent="center"
-          alignItems="center"
+          direction="column"
           minHeight="100vh"
-          flexDirection="column"
+          justifyContent="space-between"
+          alignItems="center"
         >
-          <Box textAlign="center" fontSize="xl" flex="1">
+          <Box flex="1" display="flex" justifyContent="center" alignItems="center" width="100%">
             <Routes>
               <Route path="/spotify" element={<SpotifyPage token={token} />} />
               <Route
@@ -83,7 +128,10 @@ function App() {
                       Discover and create posters based on your top Spotify
                       artists.
                     </Text>
-                    <Counter /> {/* Include the Counter component */}
+                    <Text fontSize="lg" color="gray.600">
+                      Festivals Generated:{" "}
+                      <CountUp end={loginCount} duration={1.5} />
+                    </Text>
                     {!token ? (
                       <Button
                         colorScheme="green"
